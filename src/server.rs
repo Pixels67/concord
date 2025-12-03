@@ -45,26 +45,33 @@ impl Server {
 
     fn handle_connection(&mut self, index: usize) {
         let msg = self.connections[index].recv();
-
-        if let Some(Message::Connect(name)) = &msg {
-            println!("New connection: {}", name);
-            self.users.insert(name.clone(), index);
+        if msg.is_none() {
+            return;
         }
 
-        if let Some(Message::Disconnect(name)) = &msg {
+        let msg = msg.unwrap();
+
+        if let Message::Connect(name) = msg.clone() {
+            println!("New user: {}", name);
+            self.users.insert(name, index);
+        }
+
+        if let Message::Disconnect(name) = msg.clone() {
             println!("User disconnected: {}", name);
-            self.users.remove(name);
+            self.users.remove(&name);
         }
 
         if let Some(name) = self.get_username(index)
-            && let Some(Message::Data(msg)) = msg
+            && let Message::Data(msg) = msg
         {
             for (_, id) in self.users.iter() {
+                let msg = format!("{}: {}", &name, &msg);
+                println!("{}", msg);
+
                 if *id == index {
                     continue;
                 }
 
-                let msg = format!("{}: {}", &name, &msg);
                 self.connections[*id].send(&Message::Data(msg));
             }
         }
