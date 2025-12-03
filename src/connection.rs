@@ -13,20 +13,20 @@ pub struct Connection {
 
 impl Connection {
     fn new(ip: Ipv4Addr, port: u16) -> Connection {
-        Connection{ stream: TcpStream::connect((ip, port)).unwrap()}
+        Connection {
+            stream: TcpStream::connect((ip, port)).unwrap(),
+        }
     }
 
-    pub fn send(&mut self, msg: Message) {
+    pub(crate) fn from_stream(stream: TcpStream) -> Connection {
+        Connection { stream }
+    }
+
+    pub fn send(&mut self, msg: &Message) {
         match msg {
-            Message::Connect(data) => {
-                self.write(format!("CONN:{data}\n"))
-            }
-            Message::Disconnect(data) => {
-                self.write(format!("DISC:{data}\n"))
-            }
-            Message::Data(data) => {
-                self.write(format!("DATA:{data}\n"))
-            }
+            Message::Connect(data) => self.write(format!("CONN:{data}\n")),
+            Message::Disconnect(data) => self.write(format!("DISC:{data}\n")),
+            Message::Data(data) => self.write(format!("DATA:{data}\n")),
         }
     }
 
@@ -58,7 +58,7 @@ impl Connection {
         let buf: &mut [u8; 1024] = &mut [0; 1024];
         match self.stream.read(buf).unwrap() {
             0 => None,
-            _ => Some(String::from_utf8_lossy(buf).to_string())
+            _ => Some(String::from_utf8_lossy(buf).to_string()),
         }
     }
 }
