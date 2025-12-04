@@ -1,5 +1,5 @@
 ## Concord
-Personal experiment with TCP and backend development.
+Personal experiment with TCP and networking.
 
 ## Usage
 ```sh
